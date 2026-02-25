@@ -52,7 +52,7 @@
           <button class="btn primary" disabled>Continue</button>
         </div>
 
-        <div class="shortmesh-footer">powered by shortmesh</div>
+        <div class="shortmesh-footer">Powered by Shortmesh</div>
       `;
 
       let selected = null;
@@ -130,7 +130,7 @@
           <button class="btn primary">Continue</button>
         </div>
 
-        <div class="shortmesh-footer">powered by shortmesh</div>
+        <div class="shortmesh-footer">Powered by Shortmesh</div>
       `;
 
       const inputs = content.querySelectorAll(".otp-box");
@@ -188,13 +188,11 @@
         input.addEventListener("keydown", (e) => {
           if (e.key === "Backspace") {
             if (input.value === "") {
-              // If current box is empty, move to previous box
               if (index > 0) {
                 inputs[index - 1].focus();
                 inputs[index - 1].value = "";
               }
             } else {
-              // Clear current box
               input.value = "";
             }
             e.preventDefault();
@@ -211,7 +209,7 @@
         <h2>Verifying...</h2>
         <p>Checking your code</p>
         <div class="shortmesh-spinner"></div>
-        <div class="shortmesh-footer">powered by shortmesh</div>
+        <div class="shortmesh-footer">Powered by Shortmesh</div>
       `;
 
       // replace with API call
@@ -224,7 +222,7 @@
       content.innerHTML = `
         <h2>Verified Successfully</h2>
         <div class="shortmesh-check">✓</div>
-        <div class="shortmesh-footer">powered by shortmesh</div>
+        <div class="shortmesh-footer">Powered by Shortmesh</div>
       `;
     }
 
