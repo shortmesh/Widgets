@@ -184,6 +184,22 @@
             inputs[index + 1].focus();
           }
         });
+
+        input.addEventListener("keydown", (e) => {
+          if (e.key === "Backspace") {
+            if (input.value === "") {
+              // If current box is empty, move to previous box
+              if (index > 0) {
+                inputs[index - 1].focus();
+                inputs[index - 1].value = "";
+              }
+            } else {
+              // Clear current box
+              input.value = "";
+            }
+            e.preventDefault();
+          }
+        });
       });
 
       content.querySelector(".secondary").onclick = renderSelect;
