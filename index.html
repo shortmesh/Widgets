@@ -8,12 +8,26 @@
   <body>
     <script src="widget.js"></script>
 
-    <button onclick="ShortMeshWidget.open({
-      phoneNumber: '+1234567890',
-      apiEndpoint: 'example.com/verify'
-    })">Verify with ShortMesh</button>
-    
-    <!-- Example with just phone number (uses default API endpoint) -->
-    <!-- <button onclick="ShortMeshWidget.open({ phoneNumber: '+1234567890' })">Verify with ShortMesh</button> -->
+    <button
+      onclick="
+        ShortMeshWidget.open({
+          identifier: '+237650393369',
+          endpoints: {
+            platforms: 'http://localhost:4000/api/v1/platforms',
+            sendOtp: 'http://localhost:4000/api/v1/otp/generate',
+            verifyOtp: 'http://localhost:4000/api/v1/otp/verify',
+            resendOtp: 'http://localhost:4000/api/v1/otp/resend',
+          },
+          onSuccess: (data) => {
+            console.log('Verified!', data);
+          },
+          onError: (err) => {
+            console.error('Error:', err);
+          },
+        })
+      "
+    >
+      Verify with ShortMesh
+    </button>
   </body>
 </html>

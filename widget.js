@@ -1,18 +1,52 @@
+const PLATFORM_REGISTRY = {
+  wa: {
+    label: "WhatsApp",
+    icon: "WhatsApp.svg",
+  },
+  telegram: {
+    label: "Telegram",
+    icon: "Logo.svg",
+  },
+  signal: {
+    label: "Signal",
+    icon: "Signal-Logo.svg",
+  },
+};
+
 (function () {
   let widgetConfig = {
-    phoneNumber: null,
-    apiEndpoint: null
+    identifier: null,
+    endpoints: {
+      platforms: null,
+      sendOtp: null,
+      verifyOtp: null,
+      resendOtp: null,
+    },
+    onSuccess: function () {},
+    onError: function () {},
   };
 
   function createWidget(config = {}) {
-    widgetConfig.phoneNumber = config.phoneNumber || null;
-    widgetConfig.apiEndpoint = config.apiEndpoint || ''; 
-    
-    if (!widgetConfig.phoneNumber) {
-      console.error('ShortMesh Widget: Phone number is required');
+    widgetConfig.identifier = config.identifier || null;
+    widgetConfig.endpoints = config.endpoints || {};
+    widgetConfig.onSuccess = config.onSuccess || function () {};
+    widgetConfig.onError = config.onError || function () {};
+
+    if (!widgetConfig.endpoints.platforms) {
+      console.error("ShortMesh: platforms endpoint is required");
       return;
     }
-    
+
+    if (!widgetConfig.identifier) {
+      console.error("ShortMesh: phoneNumber is required");
+      return;
+    }
+
+    if (!widgetConfig.endpoints.sendOtp || !widgetConfig.endpoints.verifyOtp) {
+      console.error("ShortMesh: sendOtp and verifyOtp endpoints are required");
+      return;
+    }
+
     const overlay = document.createElement("div");
     overlay.id = "shortmesh-overlay";
 
@@ -30,30 +64,148 @@
 
     closeBtn.onclick = () => overlay.remove();
 
-    function renderSelect() {
+    /* ---------------- SEND OTP ---------------- */
+
+    async function sendOtp(platform) {
+      const payload = {
+        identifier: widgetConfig.identifier,
+        platform,
+      };
+
+      const response = await fetch(widgetConfig.endpoints.sendOtp, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to send OTP");
+      }
+
+      return response.json();
+    }
+
+    /* ---------------- VERIFY OTP ---------------- */
+
+    async function verifyOtp(code, platform) {
+      const payload = {
+        identifier: widgetConfig.identifier,
+        code,
+        platform,
+      };
+
+      const response = await fetch(widgetConfig.endpoints.verifyOtp, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error("Invalid OTP");
+      }
+
+      return response.json();
+    }
+
+    /* ---------------- RESEND OTP ---------------- */
+
+    async function resendOtp() {
+      if (!widgetConfig.endpoints.resendOtp) return;
+
+      const response = await fetch(widgetConfig.endpoints.resendOtp, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          identifier: widgetConfig.identifier,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to resend OTP");
+      }
+
+      return response.json();
+    }
+
+    async function fetchPlatforms() {
+      const response = await fetch(widgetConfig.endpoints.platforms);
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch platforms");
+      }
+
+      return response.json();
+    }
+
+    /* ---------------- UI SCREENS ---------------- */
+
+    async function renderSelect() {
+      let platformsFromAPI = [];
+
+      try {
+        platformsFromAPI = await fetchPlatforms();
+      } catch (err) {
+        widgetConfig.onError(err);
+        content.innerHTML =
+          "<p>Failed to load platforms. Contact support for assistance.</p>";
+        return;
+      }
+
+      console.log("ShortMesh: Platforms from API:", platformsFromAPI);
+      console.log(
+        "ShortMesh: Supported platforms:",
+        Object.keys(PLATFORM_REGISTRY),
+      );
+
+      const supportedPlatformsArray = platformsFromAPI.filter(
+        (p) => PLATFORM_REGISTRY[p.platform],
+      );
+
+      if (supportedPlatformsArray.length === 0) {
+        const apiIds = platformsFromAPI.map((p) => p.platform).join(", ");
+        console.error(
+          "ShortMesh: No matching platforms found. API returned:",
+          apiIds,
+        );
+        content.innerHTML = `
+    <h2>Verify your account</h2>
+    <p>No available verification methods. Contact support for assistance.</p>
+    <div class="shortmesh-footer">Powered by Shortmesh</div>
+  `;
+        return;
+      }
+
+      const supportedPlatforms = supportedPlatformsArray
+        .map((p) => {
+          const registry = PLATFORM_REGISTRY[p.platform];
+
+          return `
+      <div class="shortmesh-platform" data-platform="${p.platform}">
+        <span class="icon">
+          <img style="width: 26px; height: 26px; margin: auto;" 
+               src="${registry.icon}" 
+               alt="${registry.label}" />
+        </span>
+        ${registry.label}
+      </div>
+    `;
+        })
+        .join("");
       content.innerHTML = `
-        <h2>Verify your account</h2>
-        <p>Select where you'd like to receive your code.</p>
+  <h2>Verify your account</h2>
+  <p>Select where you'd like to receive your code.</p>
 
-        <div class="shortmesh-platform-list">
-          <div class="shortmesh-platform" data-platform="whatsapp">
-            <span class="icon"><img style="width: 30px; height: 30px;" src="WhatsApp.svg" alt="Whatsapp" /></span> Whatsapp
-          </div>
-          <div class="shortmesh-platform" data-platform="signal">
-            <span class="icon"><img style="width: 24px; height: 24px;" src="Signal-Logo.svg" alt="Signal" /></span> Signal
-          </div>
-          <div class="shortmesh-platform" data-platform="telegram">
-            <span class="icon"><img style="width: 24px; height: 24px;" src="Logo.svg" alt="Telegram" /></span> Telegram
-          </div>
-        </div>
+  <div class="shortmesh-platform-list">
+    ${supportedPlatforms}
+  </div>
 
-        <div class="shortmesh-buttons">
-          <button class="btn secondary">Cancel</button>
-          <button class="btn primary" disabled>Continue</button>
-        </div>
+  <div class="shortmesh-buttons">
+    <button class="btn secondary">Cancel</button>
+    <button class="btn primary" disabled>Continue</button>
+  </div>
 
-        <div class="shortmesh-footer">Powered by Shortmesh</div>
-      `;
+  <div class="shortmesh-footer">Powered by Shortmesh</div>
+`;
 
       let selected = null;
       const platforms = content.querySelectorAll(".shortmesh-platform");
@@ -61,7 +213,7 @@
 
       platforms.forEach((el) => {
         el.onclick = () => {
-          platforms.forEach(p => p.classList.remove("active"));
+          platforms.forEach((p) => p.classList.remove("active"));
           el.classList.add("active");
           selected = el.dataset.platform;
           continueBtn.disabled = false;
@@ -71,42 +223,18 @@
       content.querySelector(".secondary").onclick = () => overlay.remove();
 
       continueBtn.onclick = async () => {
-        await sendToAPI(selected);
-        renderOTP(selected);
-      };
-    }
+        if (!selected) return;
 
-    async function sendToAPI(platform) {
-      const payload = {
-        phoneNumber: widgetConfig.phoneNumber,
-        platform: platform
-      };
+        continueBtn.disabled = true;
 
-      // TODO: When API is ready
-      console.log('ShortMesh: Would send to API:', payload);
-      console.log('API Endpoint:', widgetConfig.apiEndpoint);
-
-      /* 
-      try {
-        const response = await fetch(widgetConfig.apiEndpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-          console.error('ShortMesh API Error:', response.statusText);
+        try {
+          await sendOtp(selected);
+          renderOTP(selected);
+        } catch (err) {
+          widgetConfig.onError(err);
+          continueBtn.disabled = false;
         }
-
-        const data = await response.json();
-        console.log('ShortMesh API Response:', data);
-        return data;
-      } catch (error) {
-        console.error('ShortMesh API Request Failed:', error);
-      }
-      */
+      };
     }
 
     function renderOTP(platform) {
@@ -115,9 +243,13 @@
         <p>sent via <strong>${platform}</strong></p>
 
         <div class="shortmesh-otp">
-          ${Array(6).fill(0).map((_, i) =>
-            `<input type="text" maxlength="1" class="otp-box" id="otp-${i}" />`
-          ).join("")}
+          ${Array(6)
+            .fill(0)
+            .map(
+              (_, i) =>
+                `<input type="text" maxlength="1" class="otp-box" id="otp-${i}" />`,
+            )
+            .join("")}
         </div>
 
         <div class="shortmesh-resend">
@@ -134,8 +266,10 @@
       `;
 
       const inputs = content.querySelectorAll(".otp-box");
+      const verifyBtn = content.querySelector(".primary");
       const resendLink = content.querySelector(".resend-link");
       const resendTimer = content.querySelector(".resend-timer");
+
       let timeLeft = 30;
 
       const countdown = setInterval(() => {
@@ -149,28 +283,18 @@
         }
       }, 1000);
 
-      resendLink.onclick = (e) => {
+      resendLink.onclick = async (e) => {
         e.preventDefault();
-        if (!resendLink.classList.contains("disabled")) {
-          
-          timeLeft = 30;
-          resendTimer.style.display = "inline";
-          resendTimer.innerHTML = `Available in <strong>${timeLeft}s</strong>`;
-          resendLink.classList.add("disabled");
-          inputs.forEach(input => input.value = "");
-          inputs[0].focus();
-          
-          
-          const newCountdown = setInterval(() => {
-            timeLeft--;
-            if (timeLeft > 0) {
-              resendTimer.innerHTML = `Available in <strong>${timeLeft}s</strong>`;
-            } else {
-              clearInterval(newCountdown);
-              resendTimer.style.display = "none";
-              resendLink.classList.remove("disabled");
-            }
-          }, 1000);
+        if (resendLink.classList.contains("disabled")) return;
+
+        resendLink.classList.add("disabled");
+        resendTimer.style.display = "inline";
+        timeLeft = 30;
+
+        try {
+          await resendOtp();
+        } catch (err) {
+          widgetConfig.onError(err);
         }
       };
 
@@ -184,38 +308,38 @@
             inputs[index + 1].focus();
           }
         });
-
-        input.addEventListener("keydown", (e) => {
-          if (e.key === "Backspace") {
-            if (input.value === "") {
-              if (index > 0) {
-                inputs[index - 1].focus();
-                inputs[index - 1].value = "";
-              }
-            } else {
-              input.value = "";
-            }
-            e.preventDefault();
-          }
-        });
       });
 
       content.querySelector(".secondary").onclick = renderSelect;
-      content.querySelector(".primary").onclick = () => renderLoading(platform);
+
+      verifyBtn.onclick = async () => {
+        const code = Array.from(inputs)
+          .map((i) => i.value)
+          .join("");
+
+        if (code.length !== 6) return;
+
+        verifyBtn.disabled = true;
+        renderLoading();
+
+        try {
+          const result = await verifyOtp(code, platform);
+          renderSuccess();
+          widgetConfig.onSuccess(result);
+        } catch (err) {
+          widgetConfig.onError(err);
+          renderOTP(platform);
+        }
+      };
     }
 
-    function renderLoading(platform) {
+    function renderLoading() {
       content.innerHTML = `
         <h2>Verifying...</h2>
         <p>Checking your code</p>
         <div class="shortmesh-spinner"></div>
         <div class="shortmesh-footer">Powered by Shortmesh</div>
       `;
-
-      // replace with API call
-      setTimeout(() => {
-        renderSuccess();
-      }, 2000);
     }
 
     function renderSuccess() {
