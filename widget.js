@@ -20,7 +20,6 @@ const PLATFORM_REGISTRY = {
       platforms: null,
       sendOtp: null,
       verifyOtp: null,
-      resendOtp: null,
     },
     onSuccess: function () {},
     onError: function () {},
@@ -109,22 +108,17 @@ const PLATFORM_REGISTRY = {
 
     /* ---------------- RESEND OTP ---------------- */
 
-    async function resendOtp() {
-      if (!widgetConfig.endpoints.resendOtp) return;
+    async function resendOtp(platform) {
+      return sendOtp(platform);
+    }
 
-      const response = await fetch(widgetConfig.endpoints.resendOtp, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          identifier: widgetConfig.identifier,
-        }),
-      });
+    /* ---------------- EXTRACT EXPIRY SECONDS ---------------- */
 
-      if (!response.ok) {
-        throw new Error("Failed to resend OTP");
-      }
-
-      return response.json();
+    function extractExpirySeconds(otpResponse) {
+      if (otpResponse?.expiresIn) return otpResponse.expiresIn;
+      if (otpResponse?.expiry) return otpResponse.expiry;
+      if (otpResponse?.ttl) return otpResponse.ttl;
+      return 30; // default fallback
     }
 
     async function fetchPlatforms() {
@@ -228,8 +222,8 @@ const PLATFORM_REGISTRY = {
         continueBtn.disabled = true;
 
         try {
-          await sendOtp(selected);
-          renderOTP(selected);
+          const otpResponse = await sendOtp(selected);
+          renderOTP(selected, otpResponse);
         } catch (err) {
           widgetConfig.onError(err);
           continueBtn.disabled = false;
@@ -237,7 +231,9 @@ const PLATFORM_REGISTRY = {
       };
     }
 
-    function renderOTP(platform) {
+    function renderOTP(platform, otpResponse) {
+      const expirySeconds = extractExpirySeconds(otpResponse);
+
       content.innerHTML = `
         <h2>Enter verification code</h2>
         <p>sent via <strong>${platform}</strong></p>
@@ -254,7 +250,7 @@ const PLATFORM_REGISTRY = {
 
         <div class="shortmesh-resend">
           <span class="resend-text">Didn't receive a code? <a href="#" class="resend-link disabled">Resend</a></span>
-          <span class="resend-timer">Available in <strong>30s</strong></span>
+          <span class="resend-timer">Available in <strong>${expirySeconds}s</strong></span>
         </div>
 
         <div class="shortmesh-buttons">
@@ -270,18 +266,25 @@ const PLATFORM_REGISTRY = {
       const resendLink = content.querySelector(".resend-link");
       const resendTimer = content.querySelector(".resend-timer");
 
-      let timeLeft = 30;
+      let timeLeft = expirySeconds;
+      let currentCountdown = null;
 
-      const countdown = setInterval(() => {
-        timeLeft--;
-        if (timeLeft > 0) {
-          resendTimer.innerHTML = `Available in <strong>${timeLeft}s</strong>`;
-        } else {
-          clearInterval(countdown);
-          resendTimer.style.display = "none";
-          resendLink.classList.remove("disabled");
-        }
-      }, 1000);
+      const startCountdown = () => {
+        if (currentCountdown) clearInterval(currentCountdown);
+        
+        currentCountdown = setInterval(() => {
+          timeLeft--;
+          if (timeLeft > 0) {
+            resendTimer.innerHTML = `Available in <strong>${timeLeft}s</strong>`;
+          } else {
+            clearInterval(currentCountdown);
+            resendTimer.style.display = "none";
+            resendLink.classList.remove("disabled");
+          }
+        }, 1000);
+      };
+
+      startCountdown();
 
       resendLink.onclick = async (e) => {
         e.preventDefault();
@@ -289,10 +292,12 @@ const PLATFORM_REGISTRY = {
 
         resendLink.classList.add("disabled");
         resendTimer.style.display = "inline";
-        timeLeft = 30;
 
         try {
-          await resendOtp();
+          const newOtpResponse = await resendOtp(platform);
+          timeLeft = extractExpirySeconds(newOtpResponse);
+          resendTimer.innerHTML = `Available in <strong>${timeLeft}s</strong>`;
+          startCountdown();
         } catch (err) {
           widgetConfig.onError(err);
         }
@@ -328,7 +333,8 @@ const PLATFORM_REGISTRY = {
           widgetConfig.onSuccess(result);
         } catch (err) {
           widgetConfig.onError(err);
-          renderOTP(platform);
+          const newOtpResponse = await sendOtp(platform);
+          renderOTP(platform, newOtpResponse);
         }
       };
     }
