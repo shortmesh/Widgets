@@ -73,11 +73,7 @@ const PLATFORM_REGISTRY = {
         return;
       }
 
-      console.log("ShortMesh: Platforms from API:", platformsFromAPI);
-      console.log(
-        "ShortMesh: Supported platforms:",
-        Object.keys(PLATFORM_REGISTRY),
-      );
+      // console.log("ShortMesh: Platforms from API:", platformsFromAPI);
 
       const supportedPlatformsArray = platformsFromAPI.filter(
         (p) => PLATFORM_REGISTRY[p.platform],
