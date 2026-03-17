@@ -1,10 +1,10 @@
 # ShortMesh Widget
 
-A lightweight, embeddable widget that lets users pick their preferred messaging platform (WhatsApp, Telegram, Signal). Drop it into any HTML page or React app — the widget handles the UI, you handle the rest.
+A lightweight, embeddable widget that lets users pick from available platforms to receive an authentication code. Drop it into any HTML page or React app — the widget handles the UI, you handle the rest.
 
 ---
 
-![ShortMesh widget image] (/1.svg)
+![ShortMesh widget image](/1.svg)
 
 ---
 
@@ -13,7 +13,7 @@ A lightweight, embeddable widget that lets users pick their preferred messaging 
 1. The widget fetches your available platforms from your API.
 2. The user picks one.
 3. The widget calls your `onSelect` callback with the chosen platform key and closes itself.
-4. You take it from there — send an OTP, open a chat link, whatever fits your flow.
+4. You take it from there — send OTP and verify.
 
 ---
 
@@ -143,7 +143,7 @@ export function PlatformPicker() {
 Your endpoint should return a JSON array:
 
 ```json
-[{ "platform": "wa" }, { "platform": "telegram" }, { "platform": "signal" }]
+[{ "platform": "wa" }]
 ```
 
 The widget maps these against its built-in registry and only shows platforms it recognises. Unknown platforms are silently skipped.
@@ -165,8 +165,8 @@ The modal closes automatically after `onSelect` is called.
 | Key        | Platform |
 | ---------- | -------- |
 | `wa`       | WhatsApp |
-| `telegram` | Telegram |
-| `signal`   | Signal   |
+
+[Authy](https://github.com/shortmesh/Authy-API) is working to add more platforms.
 
 ---
 
