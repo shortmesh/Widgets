@@ -6,19 +6,16 @@
     <title>Document</title>
   </head>
   <body>
-    <script src="widget.js"></script>
+    <script src="widget/widget.js"></script>
 
     <button
       onclick="
         ShortMeshWidget.open({
-          identifier: '+237650393369',
           endpoints: {
-            platforms: 'http://localhost:4000/api/v1/platforms',
-            sendOtp: 'http://localhost:4000/api/v1/otp/generate',
-            verifyOtp: 'http://localhost:4000/api/v1/otp/verify',
+            platforms: 'https://yourapi.com/platforms',
           },
-          onSuccess: (data) => {
-            console.log('Verified!', data);
+          onSelect: (platform) => {
+            console.log('Selected platform:', platform);
           },
           onError: (err) => {
             console.error('Error:', err);
