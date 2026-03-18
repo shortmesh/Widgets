@@ -183,6 +183,52 @@ shortmesh-widget/
 
 ---
 
+## Troubleshooting
+
+### Assets 404 in Vite dev server
+
+The widget loads its platform icons (e.g. `WhatsApp.svg`, `Logo.svg`, `Signal-Logo.svg`) relative to the URL of `widget.js` itself. In production this is `https://shortmesh.com`, so the assets resolve correctly. During local development with Vite, `document.currentScript.src` resolves to `localhost`, so those asset requests hit your local dev server and return 404.
+
+**Fix** — add proxy rules to `vite.config.js` so those paths are forwarded to the CDN:
+
+```js
+// vite.config.js
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    proxy: {
+      '/widget.js': {
+        target: 'https://shortmesh.com',
+        changeOrigin: true,
+        secure: true,
+      },
+      '/WhatsApp.svg': {
+        target: 'https://shortmesh.com',
+        changeOrigin: true,
+        secure: true,
+      },
+      '/Logo.svg': {
+        target: 'https://shortmesh.com',
+        changeOrigin: true,
+        secure: true,
+      },
+      '/Signal-Logo.svg': {
+        target: 'https://shortmesh.com',
+        changeOrigin: true,
+        secure: true,
+      },
+    },
+  },
+})
+```
+
+> If you are pointing at a staging environment (e.g. `beta.shortmesh.com`) just replace the `target` values accordingly.
+
+---
+
 ## License
 
 See [LICENSE](LICENSE) for details.
