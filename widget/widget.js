@@ -198,6 +198,7 @@
       h2 {
         margin-bottom: 8px;
         font-size: 24px;
+        color: #101010;
       }
 
       @media (max-width: 480px) {
