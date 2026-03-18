@@ -80,12 +80,9 @@
 
       if (supportedPlatformsArray.length === 0) {
         const apiIds = platformsFromAPI.map((p) => p.platform).join(", ");
-        console.error(
-          "ShortMesh: No platforms found. API returned:",
-          apiIds,
-        );
+        console.error("ShortMesh: No platforms found. API returned:", apiIds);
         content.innerHTML = `
-    <h2>Verify your account</h2>
+    <h2 class="shortmesh-modal-title">Verify your account</h2>
     <p>No available verification methods. Contact support for assistance.</p>
     <div class="shortmesh-footer">Powered by Shortmesh</div>
   `;
@@ -197,6 +194,10 @@
         font-size: 24px;
         display: block;
         visibility: visible;
+      }
+
+      .shortmesh-modal-title {
+      color: #101010;
       }
 
       @media (max-width: 480px) {
