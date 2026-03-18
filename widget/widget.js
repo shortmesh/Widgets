@@ -1,19 +1,18 @@
-const PLATFORM_REGISTRY = {
-  wa: {
-    label: "WhatsApp",
-    icon: "WhatsApp.svg",
-  },
-  telegram: {
-    label: "Telegram",
-    icon: "Logo.svg",
-  },
-  signal: {
-    label: "Signal",
-    icon: "Signal-Logo.svg",
-  },
-};
-
 (function () {
+  const PLATFORM_REGISTRY = {
+    wa: {
+      label: "WhatsApp",
+      icon: "WhatsApp.svg",
+    },
+    telegram: {
+      label: "Telegram",
+      icon: "Logo.svg",
+    },
+    signal: {
+      label: "Signal",
+      icon: "Signal-Logo.svg",
+    },
+  };
   let widgetConfig = {
     endpoints: {
       platforms: null,
@@ -82,7 +81,7 @@ const PLATFORM_REGISTRY = {
       if (supportedPlatformsArray.length === 0) {
         const apiIds = platformsFromAPI.map((p) => p.platform).join(", ");
         console.error(
-          "ShortMesh: No matching platforms found. API returned:",
+          "ShortMesh: No platforms found. API returned:",
           apiIds,
         );
         content.innerHTML = `
@@ -193,25 +192,29 @@ const PLATFORM_REGISTRY = {
         font-size: 18px;
       }
 
-      h2 {
+      .shortmesh-modal h2 {
         margin-bottom: 8px;
         font-size: 24px;
+        display: block;
+        visibility: visible;
       }
 
       @media (max-width: 480px) {
-        h2 {
+        .shortmesh-modal h2 {
           font-size: 20px;
         }
       }
 
-      p {
+      .shortmesh-modal p {
         font-size: 14px;
         color: #555;
         margin-bottom: 20px;
+        display: block;
+        visibility: visible;
       }
 
       @media (max-width: 480px) {
-        p {
+        .shortmesh-modal p {
           font-size: 13px;
         }
       }
