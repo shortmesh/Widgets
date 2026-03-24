@@ -2,6 +2,8 @@
 
 A lightweight, embeddable widget that lets users pick from available platforms to receive an authentication code. Drop it into any HTML page or React app — the widget handles the UI, you handle the rest.
 
+> **Self-hosted only.** This widget is designed to be served from your own infrastructure. Clone this repository, serve the `widget/` directory (along with the SVG assets) from your own domain or CDN, and reference your own URL in the examples below.
+
 ---
 
 ![ShortMesh widget image](/1.svg)
@@ -17,6 +19,17 @@ A lightweight, embeddable widget that lets users pick from available platforms t
 
 ---
 
+## Hosting your own instance
+
+1. Clone this repository:
+   ```bash
+   git clone https://github.com/shortmesh/Widgets.git
+   ```
+2. Serve the repo root (or `widget/` and its sibling SVG assets) as static files from your own domain — any static file server, object storage bucket, or CDN edge will work.
+3. Replace every `https://your-widget-host.com` placeholder in the examples below with your actual URL.
+
+---
+
 ## Setup
 
 ### HTML
@@ -24,7 +37,7 @@ A lightweight, embeddable widget that lets users pick from available platforms t
 Add one script tag — no build step, no dependencies.
 
 ```html
-<script src="https://shortmesh.com/widget.js"></script>
+<script src="https://your-widget-host.com/widget/widget.js"></script>
 ```
 
 Then open the widget from any button or event:
@@ -36,7 +49,7 @@ Then open the widget from any button or event:
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>My App</title>
-    <script src="https://shortmesh.com/widget.js"></script>
+    <script src="https://your-widget-host.com/widget/widget.js"></script>
   </head>
   <body>
     <button id="platform-btn">Choose platform</button>
@@ -73,7 +86,7 @@ Load the script once (e.g. in `index.html` or via `useEffect`), then call `windo
 
 ```html
 <!-- public/index.html -->
-<script src="https://shortmesh.com/widget.js"></script>
+<script src="https://your-widget-host.com/widget/widget.js"></script>
 ```
 
 **Option B — load dynamically in a hook**
@@ -87,7 +100,7 @@ export function useShortMesh() {
     if (document.getElementById("shortmesh-script")) return;
     const script = document.createElement("script");
     script.id = "shortmesh-script";
-    script.src = "https://shortmesh.com/widget.js";
+    script.src = "https://your-widget-host.com/widget/widget.js";
     document.body.appendChild(script);
   }, []);
 
@@ -187,9 +200,9 @@ shortmesh-widget/
 
 ### Assets 404 in Vite dev server
 
-The widget loads its platform icons (e.g. `WhatsApp.svg`, `Logo.svg`, `Signal-Logo.svg`) relative to the URL of `widget.js` itself. In production this is `https://shortmesh.com`, so the assets resolve correctly. During local development with Vite, `document.currentScript.src` resolves to `localhost`, so those asset requests hit your local dev server and return 404.
+The widget loads its platform icons (e.g. `WhatsApp.svg`, `Logo.svg`, `Signal-Logo.svg`) relative to the URL of `widget.js` itself. During local development with Vite, `document.currentScript.src` resolves to `localhost`, so those asset requests hit your local dev server and may return 404 if the files are not being served there.
 
-**Fix** — add proxy rules to `vite.config.js` so those paths are forwarded to the CDN:
+**Fix** — copy (or symlink) the SVG assets into your Vite project's `public/` directory so Vite serves them alongside `widget.js`, or add proxy rules in `vite.config.js` pointing to your self-hosted instance:
 
 ```js
 // vite.config.js
@@ -200,23 +213,23 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      '/widget.js': {
-        target: 'https://shortmesh.com',
+      '/widget/widget.js': {
+        target: 'https://your-widget-host.com',
         changeOrigin: true,
         secure: true,
       },
       '/WhatsApp.svg': {
-        target: 'https://shortmesh.com',
+        target: 'https://your-widget-host.com',
         changeOrigin: true,
         secure: true,
       },
       '/Logo.svg': {
-        target: 'https://shortmesh.com',
+        target: 'https://your-widget-host.com',
         changeOrigin: true,
         secure: true,
       },
       '/Signal-Logo.svg': {
-        target: 'https://shortmesh.com',
+        target: 'https://your-widget-host.com',
         changeOrigin: true,
         secure: true,
       },
@@ -225,7 +238,7 @@ export default defineConfig({
 })
 ```
 
-> If you are pointing at a staging environment (e.g. `beta.shortmesh.com`) just replace the `target` values accordingly.
+> Replace `https://your-widget-host.com` with the URL where you are serving your own instance of the widget.
 
 ---
 

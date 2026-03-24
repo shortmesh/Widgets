@@ -1,6 +1,6 @@
 (function () {
   // Resolve the base URL from the script tag itself so that icon paths always
-  // point back to the ShortMesh host, even when the widget is embedded on an
+  // point back to the host, even when the widget is embedded on an
   // external domain. Falls back to the page origin if currentScript is unavailable.
   const _scriptSrc = (document.currentScript && document.currentScript.src) || '';
   const BASE_URL = _scriptSrc ? _scriptSrc.substring(0, _scriptSrc.lastIndexOf('/') + 1) : '/';
@@ -82,8 +82,6 @@
         content.innerHTML = '<p>Failed to load platforms. Contact support for assistance.</p>';
         return;
       }
-
-      // console.log("ShortMesh: Platforms from API:", platformsFromAPI);
 
       const supportedPlatformsArray = platformsFromAPI.filter((p) => PLATFORM_REGISTRY[p.platform]);
 
