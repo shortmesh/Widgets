@@ -1,6 +1,6 @@
 # ShortMesh Widget
 
-A lightweight, embeddable widget that lets users pick from available platforms to receive an authentication code. Drop it into any HTML page or React app — the widget handles the UI, you handle the rest.
+A lightweight, embeddable widget that lets users pick from available platforms to receive an authentication code.
 
 > **Self-hosted only.** This widget is designed to be served from your own infrastructure. Clone this repository, serve the `widget/` directory (along with the SVG assets) from your own domain or CDN, and reference your own URL in the examples below.
 
@@ -25,7 +25,8 @@ A lightweight, embeddable widget that lets users pick from available platforms t
    ```bash
    git clone https://github.com/shortmesh/Widgets.git
    ```
-2. Serve the repo root (or `widget/` and its sibling SVG assets) as static files from your own domain — any static file server, object storage bucket, or CDN edge will work.
+2. Serve the repo root (or `widget/` and its sibling SVG assets) as static files from your own domain.
+
 3. Replace every `https://your-widget-host.com` placeholder in the examples below with your actual URL.
 
 ---
@@ -178,21 +179,9 @@ The modal closes automatically after `onSelect` is called.
 | Key        | Platform |
 | ---------- | -------- |
 | `wa`       | WhatsApp |
+| `signal`       | Signal |
 
 [Authy](https://github.com/shortmesh/Authy-API) is working to add more platforms.
-
----
-
-## File structure
-
-```
-shortmesh-widget/
-├── widget/
-│   └── widget.js   # Widget source
-├── index.html      # Local demo
-├── README.md
-└── LICENSE
-```
 
 ---
 
@@ -200,7 +189,7 @@ shortmesh-widget/
 
 ### Assets 404 in Vite dev server
 
-The widget loads its platform icons (e.g. `WhatsApp.svg`, `Logo.svg`, `Signal-Logo.svg`) relative to the URL of `widget.js` itself. During local development with Vite, `document.currentScript.src` resolves to `localhost`, so those asset requests hit your local dev server and may return 404 if the files are not being served there.
+The widget loads its platform icons (e.g. `WhatsApp.svg`, `Telegram.svg`, `Signal.svg`) relative to the URL of `widget.js` itself. During local development with Vite, `document.currentScript.src` resolves to `localhost`, so those asset requests hit your local dev server and may return 404 if the files are not being served there.
 
 **Fix** — copy (or symlink) the SVG assets into your Vite project's `public/` directory so Vite serves them alongside `widget.js`, or add proxy rules in `vite.config.js` pointing to your self-hosted instance:
 
@@ -218,17 +207,17 @@ export default defineConfig({
         changeOrigin: true,
         secure: true,
       },
-      '/WhatsApp.svg': {
+      '/Whatsapp.svg': {
         target: 'https://your-widget-host.com',
         changeOrigin: true,
         secure: true,
       },
-      '/Logo.svg': {
+      '/Telegram.svg': {
         target: 'https://your-widget-host.com',
         changeOrigin: true,
         secure: true,
       },
-      '/Signal-Logo.svg': {
+      '/Signal.svg': {
         target: 'https://your-widget-host.com',
         changeOrigin: true,
         secure: true,

@@ -8,15 +8,15 @@
   const PLATFORM_REGISTRY = {
     wa: {
       label: 'WhatsApp',
-      icon: BASE_URL + 'WhatsApp.svg'
+      icon: BASE_URL + 'Whatsapp.svg'
     },
     telegram: {
       label: 'Telegram',
-      icon: BASE_URL + 'Logo.svg'
+      icon: BASE_URL + 'Telegram.svg'
     },
     signal: {
       label: 'Signal',
-      icon: BASE_URL + 'Signal-Logo.svg'
+      icon: BASE_URL + 'Signal.svg'
     }
   };
   let widgetConfig = {
@@ -231,6 +231,8 @@
         padding: 14px;
         border-radius: 10px;
         background: #fff;
+        color: #333;
+        font-size: 16px;
         border: 1px solid #ddd;
         cursor: pointer;
         display: flex;
@@ -272,6 +274,7 @@
 
       .btn.secondary {
         background: #e6e6e6;
+        color: #333;
       }
 
       .shortmesh-footer {
